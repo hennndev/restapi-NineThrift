@@ -1,14 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { CategoriesService } from './categories.service';
-import { AddCategoryDto } from './dto/add-category.dto';
-import { UpdateCategoryDto } from './dto/update-category.dto';
+import { Prisma } from '@prisma/client'
+import { CategoriesService } from './categories.service'
+import { Controller, Get, Post, Body, Param, Delete, Put } from '@nestjs/common'
 
-@Controller('categories')
+@Controller('api/categories')
 export class CategoriesController {
     constructor(private readonly categoriesService: CategoriesService) {}
 
     @Post()
-    addCategory(@Body() body: AddCategoryDto) {
+    addCategory(@Body() body: Prisma.CategoryCreateInput) {
         return this.categoriesService.addCategory(body)
     }
 
@@ -18,17 +17,17 @@ export class CategoriesController {
     }
 
     @Get(':id')
-    getCategory(@Param('id') id: string) {
+    getCategory(@Param('id') id: number) {
         return this.categoriesService.getCategory(+id)
     }
 
-    @Patch(':id')
-    updateCategory(@Param('id') id: string, @Body() updateCategoryDto: UpdateCategoryDto) {
-        return this.categoriesService.updateCategory(+id, updateCategoryDto)
+    @Put(':id')
+    updateCategory(@Param('id') id: number, @Body() body: Prisma.CategoryUpdateInput) {
+        return this.categoriesService.updateCategory(+id, body)
     }
 
     @Delete(':id')
-    removeCategory(@Param('id') id: string) {
+    removeCategory(@Param('id') id: number) {
         return this.categoriesService.removeCategory(+id)
     }
 }

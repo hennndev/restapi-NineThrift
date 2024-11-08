@@ -1,26 +1,96 @@
-import { Injectable } from '@nestjs/common';
-import { CreateBrandDto } from './dto/create-brand.dto';
-import { UpdateBrandDto } from './dto/update-brand.dto';
+import { Prisma, Brand } from '@prisma/client'
+import { DatabaseService } from 'src/database/database.service'
+import { BadRequestException, Injectable } from '@nestjs/common'
 
 @Injectable()
 export class BrandsService {
-  create(createBrandDto: CreateBrandDto) {
-    return 'This action adds a new brand';
-  }
+    constructor(private readonly databaseService: DatabaseService) {}
 
-  findAll() {
-    return `This action returns all brands`;
-  }
+    async addBrand(body: Prisma.BrandCreateInput) {
+        const { brand } = body
+        if(!brand) {
+            throw new BadRequestException("Brand fiels is required")
+        }
+        const brandData: Brand = await this.databaseService.brand.findUnique({
+            where: {
+                brand
+            }
+        })
+        if(brandData) {
+            throw new BadRequestException("Brand already added")
+        }
+        await this.databaseService.brand.create({
+            data: {
+                brand
+            }
+        })
+        return {
+            message: "New brand has added"
+        }
+    }
 
-  findOne(id: number) {
-    return `This action returns a #${id} brand`;
-  }
+    async getBrands() {
+        const data: Brand[] = await this.databaseService.brand.findMany({})
+        return {
+            message: "Success get all brand data",
+            data
+        }
+    }
 
-  update(id: number, updateBrandDto: UpdateBrandDto) {
-    return `This action updates a #${id} brand`;
-  }
+    async getBrand(id: number) {
+        const brand: Brand = await this.databaseService.brand.findFirst({
+            where: {
+                id
+            }
+        }) 
+        if(!brand) {
+            throw new BadRequestException("Brand not found")
+        }
+        return {
+            message: "Success get brand data",
+            data: brand
+        }
+    }
 
-  remove(id: number) {
-    return `This action removes a #${id} brand`;
-  }
+    async updateBrand(id: number, body: Prisma.BrandUpdateInput) {
+        const { brand } = body
+        if(!brand) {
+            throw new BadRequestException("Brand field is required")
+        }
+        const brandData = await this.databaseService.brand.findFirst({
+            where: {
+                id
+            }
+        })
+        if(!brandData) {
+            throw new BadRequestException("Brand not found")
+        }
+        await this.databaseService.brand.update({
+            where: {
+                id
+            },
+            data: {
+                brand
+            }
+        })
+    }
+
+    async removeBrand(id: number) {
+        const brand = await this.databaseService.brand.findFirst({
+            where: {
+                id
+            }
+        })
+        if(!brand) {
+            throw new BadRequestException("Brand not found")
+        }
+        await this.databaseService.brand.delete({
+            where: {
+                id
+            }
+        })
+        return {
+            message: "Brand has deleted"
+        }
+    }
 }

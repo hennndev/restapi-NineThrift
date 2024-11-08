@@ -1,34 +1,33 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { BrandsService } from './brands.service';
-import { CreateBrandDto } from './dto/create-brand.dto';
-import { UpdateBrandDto } from './dto/update-brand.dto';
+import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common'
+import { BrandsService } from './brands.service'
+import { Prisma } from '@prisma/client'
 
-@Controller('brands')
+@Controller('api/brands')
 export class BrandsController {
-  constructor(private readonly brandsService: BrandsService) {}
+    constructor(private readonly brandsService: BrandsService) {}
 
-  @Post()
-  create(@Body() createBrandDto: CreateBrandDto) {
-    return this.brandsService.create(createBrandDto);
-  }
+    @Post()
+    addBrand(@Body() body: Prisma.BrandCreateInput) {
+        return this.brandsService.addBrand(body)
+    }
 
-  @Get()
-  findAll() {
-    return this.brandsService.findAll();
-  }
+    @Get()
+    getBrands() {
+        return this.brandsService.getBrands()
+    }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.brandsService.findOne(+id);
-  }
+    @Get(':id')
+    getBrand(@Param('id') id: number) {
+        return this.brandsService.getBrand(id)
+    }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateBrandDto: UpdateBrandDto) {
-    return this.brandsService.update(+id, updateBrandDto);
-  }
+    @Patch(':id')
+    updateBrand(@Param('id') id: number, @Body() body: Prisma.BrandUpdateInput) {
+        return this.brandsService.updateBrand(id, body)
+    }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.brandsService.remove(+id);
-  }
+    @Delete(':id')
+    removeBrand(@Param('id') id: number) {
+        return this.brandsService.removeBrand(id)
+    }
 }

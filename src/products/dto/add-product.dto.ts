@@ -11,10 +11,10 @@ export class AddProductDto {
     price: number
 
     @IsString()
-    categoryId: string
+    categoryId: number
 
     @IsString()
-    brandId: string
+    brandId: number
 
     @IsString()
     description: string

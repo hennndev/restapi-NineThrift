@@ -1,26 +1,73 @@
-import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { Prisma, User } from '@prisma/client'
+import { BadRequestException, Injectable } from '@nestjs/common'
+import { DatabaseService } from 'src/database/database.service'
 
 @Injectable()
 export class UsersService {
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
-  }
+    constructor(private readonly databaseService: DatabaseService) {}
 
-  findAll() {
-    return `This action returns all users`;
-  }
+    async getUsers() {
+        const data: User[] = await this.databaseService.user.findMany({})
+        const transformUserData = data.map(({password, ...userData}: User) => {
+            return userData
+        })
+        return {
+            message: "Success get all user",
+            data: transformUserData
+        }
+    }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
-  }
+    async getUser(id: number) {
+        const user: User = await this.databaseService.user.findFirst({
+            where: {
+                id
+            }
+        })
+        if(!user) {
+            throw new BadRequestException("User not found")
+        }
+        const {password, ...data} = user
+        return {
+            message: "Success get user data",
+            data
+        }
+    }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
-  }
+    async updateUser(id: number, body: Prisma.UserUpdateInput) {
+        const user: User = await this.databaseService.user.findFirst({
+            where: {
+                id
+            }
+        })
+        if(!user) {
+            throw new BadRequestException("User not found")
+        }
+        await this.databaseService.user.update({
+            where: {
+                id
+            },
+            data: {
+                ...body
+            }
+        })
+    }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
-  }
+    async removeUser(id: number) {
+        const user: User = await this.databaseService.user.findFirst({
+            where: {
+                id
+            }
+        })
+        if(!user) {
+            throw new BadRequestException("User not found")
+        }
+        await this.databaseService.user.delete({
+            where: {
+                id
+            }
+        })
+        return {
+            message: "User has deleted"
+        }
+    }
 }
