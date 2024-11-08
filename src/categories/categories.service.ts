@@ -1,6 +1,6 @@
 import { Prisma, Category } from '@prisma/client'
 import { DatabaseService } from 'src/database/database.service'
-import { BadRequestException, Injectable } from '@nestjs/common'
+import { HttpException, Injectable } from '@nestjs/common'
 
 @Injectable()
 export class CategoriesService {
@@ -9,7 +9,7 @@ export class CategoriesService {
     async addCategory(body: Prisma.CategoryCreateInput) {
         const { category } = body
         if(!category) {
-            throw new BadRequestException("Category field is required")
+            throw new HttpException("Category field is required", 400)
         }
         const checkExistCategory: Category = await this.databaseService.category.findUnique({
             where: {
@@ -17,7 +17,7 @@ export class CategoriesService {
             }
         })
         if(checkExistCategory) {
-            throw new BadRequestException("Category already added")
+            throw new HttpException("Category already added", 400)
         }
         await this.databaseService.category.create({
             data: {
@@ -44,7 +44,7 @@ export class CategoriesService {
             }
         })
         if(!category) {
-            throw new BadRequestException("Category not found")
+            throw new HttpException("Category not found", 400)
         }
         return {
             message: "Success get category",
@@ -55,7 +55,7 @@ export class CategoriesService {
     async updateCategory(id: number, body: Prisma.CategoryUpdateInput) {
         const { category } = body
         if(!category) {
-            throw new BadRequestException("Category field is required")
+            throw new HttpException("Category field is required", 400)
         }
         const categoryData: Category = await this.databaseService.category.findFirst({
             where: {
@@ -63,7 +63,7 @@ export class CategoriesService {
             }
         })
         if(!categoryData) {
-            throw new BadRequestException("Category not found")
+            throw new HttpException("Category not found", 400)
         }
         
         await this.databaseService.category.update({
@@ -86,7 +86,7 @@ export class CategoriesService {
             }
         })
         if(!category) {
-            throw new BadRequestException("Category not found")
+            throw new HttpException("Category not found", 400)
         }
         await this.databaseService.category.delete({
             where: {

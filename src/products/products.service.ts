@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common'
+import { BadRequestException, HttpException, Injectable } from '@nestjs/common'
 import { AddProductDto } from './dto/add-product.dto'
 import { UpdateProductDto } from './dto/update-product.dto'
 import { Prisma, Product } from '@prisma/client'
@@ -11,7 +11,7 @@ export class ProductsService {
     async addProduct(body: AddProductDto) {
         const { name, image, price, description, categoryId, brandId,  } = body
         if(!name || !image || !price || !description || !categoryId || !brandId) {
-            throw new BadRequestException("All field is required")
+            throw new HttpException("All field is required", 400)
         }
         await this.databaseService.product.create({
             data: {
@@ -62,7 +62,7 @@ export class ProductsService {
         }) 
         const { categoryId, brandId, ...transformedData } = product
         if(!product) {
-            throw new BadRequestException("Product not found")
+            throw new HttpException("Product not found", 400)
         }
         return {
             message: "Success get product data",
@@ -77,7 +77,7 @@ export class ProductsService {
             }
         }) 
         if(!product) {
-            throw new BadRequestException("Product not found")
+            throw new HttpException("Product not found", 400)
         }
     }
 
@@ -88,7 +88,7 @@ export class ProductsService {
             }
         }) 
         if(!product) {
-            throw new BadRequestException("Product not found")
+            throw new HttpException("Product not found", 400)
         }
         await this.databaseService.product.delete({
             where: {

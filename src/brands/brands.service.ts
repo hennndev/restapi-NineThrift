@@ -1,6 +1,6 @@
 import { Prisma, Brand } from '@prisma/client'
 import { DatabaseService } from 'src/database/database.service'
-import { BadRequestException, Injectable } from '@nestjs/common'
+import { HttpException, Injectable } from '@nestjs/common'
 
 @Injectable()
 export class BrandsService {
@@ -9,7 +9,7 @@ export class BrandsService {
     async addBrand(body: Prisma.BrandCreateInput) {
         const { brand } = body
         if(!brand) {
-            throw new BadRequestException("Brand fiels is required")
+            throw new HttpException("Brand fiels is required", 400)
         }
         const brandData: Brand = await this.databaseService.brand.findUnique({
             where: {
@@ -17,7 +17,7 @@ export class BrandsService {
             }
         })
         if(brandData) {
-            throw new BadRequestException("Brand already added")
+            throw new HttpException("Brand already added", 400)
         }
         await this.databaseService.brand.create({
             data: {
@@ -44,7 +44,7 @@ export class BrandsService {
             }
         }) 
         if(!brand) {
-            throw new BadRequestException("Brand not found")
+            throw new HttpException("Brand not found", 400)
         }
         return {
             message: "Success get brand data",
@@ -55,7 +55,7 @@ export class BrandsService {
     async updateBrand(id: number, body: Prisma.BrandUpdateInput) {
         const { brand } = body
         if(!brand) {
-            throw new BadRequestException("Brand field is required")
+            throw new HttpException("Brand field is required", 400)
         }
         const brandData = await this.databaseService.brand.findFirst({
             where: {
@@ -63,7 +63,7 @@ export class BrandsService {
             }
         })
         if(!brandData) {
-            throw new BadRequestException("Brand not found")
+            throw new HttpException("Brand not found", 400)
         }
         await this.databaseService.brand.update({
             where: {
@@ -82,7 +82,7 @@ export class BrandsService {
             }
         })
         if(!brand) {
-            throw new BadRequestException("Brand not found")
+            throw new HttpException("Brand not found", 400)
         }
         await this.databaseService.brand.delete({
             where: {

@@ -18,16 +18,16 @@ export class BrandsController {
 
     @Get(':id')
     getBrand(@Param('id') id: number) {
-        return this.brandsService.getBrand(id)
+        return this.brandsService.getBrand(+id)
     }
 
     @Patch(':id')
     updateBrand(@Param('id') id: number, @Body() body: Prisma.BrandUpdateInput) {
-        return this.brandsService.updateBrand(id, body)
+        return this.brandsService.updateBrand(+id, body)
     }
 
     @Delete(':id')
     removeBrand(@Param('id') id: number) {
-        return this.brandsService.removeBrand(id)
+        return this.brandsService.removeBrand(+id)
     }
 }

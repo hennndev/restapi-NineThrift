@@ -3,9 +3,8 @@ import * as bcrypt from 'bcryptjs'
 import { Prisma } from '@prisma/client'
 import { LoginAuthDto } from './dto/login.dto'
 import { RegisterAuthDto } from './dto/register.dto'
-import { readUserDB, writeUserDB } from 'src/utils/utils'
 import { ResetPasswordAuthDto } from './dto/reset-password.dto'
-import { BadRequestException, Injectable } from '@nestjs/common'
+import { BadRequestException, HttpException, Injectable } from '@nestjs/common'
 import { ChangePasswordAuthDto } from './dto/change-password.dto'
 import { DatabaseService } from 'src/database/database.service'
 
@@ -20,7 +19,7 @@ export class AuthService {
     async login(body: LoginAuthDto): Promise<LoginValueTypes> {
         const {email, password} = body
         if(!email || !password) {
-            throw new BadRequestException("All field is required")
+            throw new HttpException("All field is required", 400)
         }
         const user = await this.databaseService.user.findUnique({
             where: {
@@ -28,11 +27,11 @@ export class AuthService {
             }
         })
         if(!user) {
-            throw new BadRequestException("User not found")
+            throw new HttpException("User not found", 400)
         }
         const checkPassword = await bcrypt.compare(password, user.password)
         if(!checkPassword) {
-            throw new BadRequestException("Password incorrect")
+            throw new HttpException("Password incorrect", 400)
         }
         console.log(user)
         return {
@@ -43,7 +42,7 @@ export class AuthService {
     async register(body: RegisterAuthDto) {
         const { username, email, password } = body
         if(!username || !email || !password) {
-            throw new BadRequestException("All field is required")
+            throw new HttpException("All field is required", 400)
         }
         const user = await this.databaseService.user.findUnique({
             where: {
@@ -51,7 +50,7 @@ export class AuthService {
             }
         })
         if(user) {
-            throw new BadRequestException("User already registered")
+            throw new HttpException("User already registered", 400)
         }
         const hashPassword = await bcrypt.hash(password, 10)
         await this.databaseService.user.create({
@@ -77,12 +76,12 @@ export class AuthService {
     // resetPassword(body: ResetPasswordAuthDto) {
     //     const { email } = body
     //     if(!email) {
-    //         throw new BadRequestException("Email field is required")
+    //         throw new HttpException("Email field is required")
     //     }
     //     const userDB = readUserDB()
     //     const user: Prisma.UserCreateInput = userDB.find((obj: Prisma.UserCreateInput) => obj.email === email)
     //     if(!user) {
-    //         throw new BadRequestException("User not found")
+    //         throw new HttpException("User not found")
     //     }
     //     const transformUserDB = userDB.map((obj: Prisma.UserCreateInput) => {
     //         if(obj.email === email) {
@@ -103,7 +102,7 @@ export class AuthService {
     // async changePassword(body: ChangePasswordAuthDto) {
     //     const { currentPassword, currentPasswordConfirm, newPassword } = body
     //     if(!currentPassword || !currentPasswordConfirm || !newPassword) {
-    //         throw new BadRequestException("All field is required")
+    //         throw new HttpException("All field is required")
     //     }
     //     const userDB = readUserDB()
     //     return {

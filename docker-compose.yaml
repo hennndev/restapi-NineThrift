@@ -5,9 +5,14 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - 3000:3000
+      - 5000:3000
     environment:
-      - DATABASE_URL=postgresql://postgres:hendra@localhost:5432/NineThrift?schema=public
+      - DATABASE_URL=postgresql://postgres:hendra@192.168.100.10:5432/NineThrift?schema=public
+    depends_on:
+      - postgres
+    networks:
+      nest-postgres-network:
+        ipv4_address: 192.168.100.20
 
   postgres:
     container_name: db
@@ -18,3 +23,19 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=hendra
       - POSTGRES_DB=NineThrift 
+    volumes:
+      - pgData:/var/lib/postgresql/data
+    networks:
+      nest-postgres-network:
+        ipv4_address: 192.168.100.10
+
+networks:
+  nest-postgres-network:
+    driver: bridge
+    ipam: 
+      config:
+        - subnet: 192.168.100.0/24
+          gateway: 192.168.100.1
+
+volumes:
+  pgData:
