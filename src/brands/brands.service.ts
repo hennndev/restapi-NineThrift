@@ -30,7 +30,11 @@ export class BrandsService {
     }
 
     async getBrands() {
-        const data: Brand[] = await this.databaseService.brand.findMany({})
+        const data: Brand[] = await this.databaseService.brand.findMany({
+            orderBy: {
+                createdAt: "desc"
+            }
+        })
         return {
             message: "Success get all brand data",
             data
@@ -57,7 +61,7 @@ export class BrandsService {
         if(!brand) {
             throw new HttpException("Brand field is required", 400)
         }
-        const brandData = await this.databaseService.brand.findFirst({
+        const brandData: Brand = await this.databaseService.brand.findFirst({
             where: {
                 id
             }
@@ -73,10 +77,13 @@ export class BrandsService {
                 brand
             }
         })
+        return {
+            message: "Brand has updated"
+        }
     }
 
     async removeBrand(id: number) {
-        const brand = await this.databaseService.brand.findFirst({
+        const brand: Brand = await this.databaseService.brand.findFirst({
             where: {
                 id
             }

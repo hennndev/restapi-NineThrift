@@ -1,26 +1,182 @@
-import { Injectable } from '@nestjs/common';
-import { CreateOrderDto } from './dto/create-order.dto';
-import { UpdateOrderDto } from './dto/update-order.dto';
+import { v4 as uuid} from 'uuid'
+import { Order, Prisma } from '@prisma/client'
+import { CreateOrderDto } from './dto/create-order.dto'
+import { HttpException, Injectable } from '@nestjs/common'
+import { DatabaseService } from 'src/database/database.service'
 
 @Injectable()
 export class OrdersService {
-  create(createOrderDto: CreateOrderDto) {
-    return 'This action adds a new order';
-  }
+    constructor(private readonly databaseService: DatabaseService) {}
+    
+    async createOrder(body: CreateOrderDto) {
+        const { totalOrders, userId, products } = body
+        if(!totalOrders|| !userId || !products || products.length < 1) {
+            throw new HttpException("All field is required", 400)
+        }
+        const order = await this.databaseService.order.create({
+            data: {
+                id: uuid(),
+                totalOrders,
+                user: {
+                    connect: {
+                        id: userId
+                    }
+                },
+            },
+            select: {
+                id: true
+            }
+        })
+        const productsOrder = products.map((obj) => ({
+            orderId: order.id,
+            productId: obj.productId,
+            quantity: obj.quantity
+        }))
 
-  findAll() {
-    return `This action returns all orders`;
-  }
+        await this.databaseService.productOrder.createMany({
+            data: productsOrder
+        })
 
-  findOne(id: number) {
-    return `This action returns a #${id} order`;
-  }
+        return {
+            message: "Success create new order"
+        }
+    }
+    
+    async getOrders() {
+        const orders = await this.databaseService.order.findMany({
+            include: {
+                user: {
+                    select: {
+                        username: true,
+                        email: true, 
+                        profile: true,
+                        password: false
+                    }
+                },
+                products: {
+                    include: {
+                        product: {
+                            select: {
+                                name: true,
+                                image: true,
+                                price: true,
+                                brand: {
+                                    select: {
+                                        brand: true
+                                    }
+                                },
+                                category: {
+                                    select: {
+                                        category: true
+                                    }
+                                },
+                                description: true,
+                                discount: true
+                            }
+                        },
+                    },
+                   
+                },
+            },
+            orderBy: {
+                createdAT: "desc"
+            }
+        })
+        return {
+            message: "Success get all order data",
+            data: orders
+        }
+    }
 
-  update(id: number, updateOrderDto: UpdateOrderDto) {
-    return `This action updates a #${id} order`;
-  }
+    async getOrder(id: string) {
+        const order = await this.databaseService.order.findFirst({
+            where: {
+                id
+            },
+            include: {
+                user: {
+                    select: {
+                        username: true,
+                        email: true, 
+                        profile: true,
+                        password: false
+                    }
+                },
+                products: {
+                    include: {
+                        product: {
+                            select: {
+                                name: true,
+                                image: true,
+                                price: true,
+                                brand: {
+                                    select: {
+                                        brand: true
+                                    }
+                                },
+                                category: {
+                                    select: {
+                                        category: true
+                                    }
+                                },
+                                description: true,
+                                discount: true
+                            }
+                        },
+                    },
+                   
+                },
+            },
+        })
+        if(!order) {
+            throw new HttpException("Order not found", 400)
+        }
+        return {
+            message: "Success get order data",
+            data: order
+        }
+    }
 
-  remove(id: number) {
-    return `This action removes a #${id} order`;
-  }
+    async updateOrder(id: string, body: Prisma.OrderUpdateInput) {
+        const { status } = body
+        if(!status) {
+            throw new HttpException("Status field is required", 400)
+        }
+        const order = await this.databaseService.order.findFirst({
+            where: {
+                id
+            },
+        })
+        if(!order) {
+            throw new HttpException("Order not found", 400)
+        }
+        await this.databaseService.order.update({
+            where: { id },
+            data: {
+                status: body.status
+            }
+        })
+        return {
+            message: "Order status has updated"
+        }
+    }
+
+    async removeOrder(id: string) {
+        const order = await this.databaseService.order.findFirst({
+            where: {
+                id
+            }
+        })
+        if(!order) {
+            throw new HttpException("Order not found", 400)
+        }
+        await this.databaseService.order.delete({
+            where: {
+                id
+            }
+        })
+        return {
+            message: "Order has deleted"
+        }
+    }
 }

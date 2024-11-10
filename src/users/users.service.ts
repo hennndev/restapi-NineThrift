@@ -1,5 +1,5 @@
 import { Prisma, User } from '@prisma/client'
-import { BadRequestException, Injectable } from '@nestjs/common'
+import { HttpException, Injectable } from '@nestjs/common'
 import { DatabaseService } from 'src/database/database.service'
 
 @Injectable()
@@ -7,12 +7,16 @@ export class UsersService {
     constructor(private readonly databaseService: DatabaseService) {}
 
     async getUsers() {
-        const data: User[] = await this.databaseService.user.findMany({})
-        const transformUserData = data.map(({password, ...userData}: User) => {
-            return userData
+        const users: User[] = await this.databaseService.user.findMany({
+            orderBy: {
+                createdAt: "desc"
+            },
+        })
+        const transformUserData = users.map(({password, ...userData}: User) => {
+            return userData 
         })
         return {
-            message: "Success get all user",
+            message: "Success get all user data",
             data: transformUserData
         }
     }
@@ -21,10 +25,10 @@ export class UsersService {
         const user: User = await this.databaseService.user.findFirst({
             where: {
                 id
-            }
+            },
         })
         if(!user) {
-            throw new BadRequestException("User not found")
+            throw new HttpException("User not found", 400)
         }
         const {password, ...data} = user
         return {
@@ -40,7 +44,7 @@ export class UsersService {
             }
         })
         if(!user) {
-            throw new BadRequestException("User not found")
+            throw new HttpException("User not found", 400)
         }
         await this.databaseService.user.update({
             where: {
@@ -50,6 +54,9 @@ export class UsersService {
                 ...body
             }
         })
+        return {
+            message: "User has updated"
+        }
     }
 
     async removeUser(id: number) {
@@ -59,7 +66,7 @@ export class UsersService {
             }
         })
         if(!user) {
-            throw new BadRequestException("User not found")
+            throw new HttpException("User not found", 400)
         }
         await this.databaseService.user.delete({
             where: {

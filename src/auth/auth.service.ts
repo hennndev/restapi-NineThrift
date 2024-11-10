@@ -1,27 +1,20 @@
-import { v4 as uuid } from 'uuid'
 import * as bcrypt from 'bcryptjs'
-import { Prisma } from '@prisma/client'
+import { User } from '@prisma/client'
 import { LoginAuthDto } from './dto/login.dto'
 import { RegisterAuthDto } from './dto/register.dto'
-import { ResetPasswordAuthDto } from './dto/reset-password.dto'
-import { BadRequestException, HttpException, Injectable } from '@nestjs/common'
-import { ChangePasswordAuthDto } from './dto/change-password.dto'
+import { HttpException, Injectable } from '@nestjs/common'
 import { DatabaseService } from 'src/database/database.service'
-
-type LoginValueTypes = {
-    message: string
-} 
 
 @Injectable()
 export class AuthService {
     constructor(private readonly databaseService: DatabaseService) {}
 
-    async login(body: LoginAuthDto): Promise<LoginValueTypes> {
+    async login(body: LoginAuthDto) {
         const {email, password} = body
         if(!email || !password) {
             throw new HttpException("All field is required", 400)
         }
-        const user = await this.databaseService.user.findUnique({
+        const user: User = await this.databaseService.user.findUnique({
             where: {
                 email
             }
@@ -33,7 +26,6 @@ export class AuthService {
         if(!checkPassword) {
             throw new HttpException("Password incorrect", 400)
         }
-        console.log(user)
         return {
             message: "Success login",
         }
@@ -44,7 +36,7 @@ export class AuthService {
         if(!username || !email || !password) {
             throw new HttpException("All field is required", 400)
         }
-        const user = await this.databaseService.user.findUnique({
+        const user: User = await this.databaseService.user.findUnique({
             where: {
                 email
             }
@@ -59,11 +51,12 @@ export class AuthService {
                 email,
                 password: hashPassword,
                 profile: {
-                    phoneNumber: "",
+                    city: "",
                     country: "",
                     address1: "",
                     address2: "",
-                    postalCode: ""
+                    postalCode: "",
+                    phoneNumber: "",
                 }
             }
         })
@@ -71,42 +64,4 @@ export class AuthService {
             message: "Success register and create new user"
         }
     }
-
-
-    // resetPassword(body: ResetPasswordAuthDto) {
-    //     const { email } = body
-    //     if(!email) {
-    //         throw new HttpException("Email field is required")
-    //     }
-    //     const userDB = readUserDB()
-    //     const user: Prisma.UserCreateInput = userDB.find((obj: Prisma.UserCreateInput) => obj.email === email)
-    //     if(!user) {
-    //         throw new HttpException("User not found")
-    //     }
-    //     const transformUserDB = userDB.map((obj: Prisma.UserCreateInput) => {
-    //         if(obj.email === email) {
-    //             return {
-    //                 ...obj, 
-    //                 password: ""
-    //             }
-    //         } else {
-    //             return obj
-    //         }
-    //     })
-    //     writeUserDB(JSON.stringify(transformUserDB))
-    //     return {
-    //         message: "Your password has been reseted. You will redirect to reset password page."
-    //     }
-    // }
-
-    // async changePassword(body: ChangePasswordAuthDto) {
-    //     const { currentPassword, currentPasswordConfirm, newPassword } = body
-    //     if(!currentPassword || !currentPasswordConfirm || !newPassword) {
-    //         throw new HttpException("All field is required")
-    //     }
-    //     const userDB = readUserDB()
-    //     return {
-    //         message: "Your password has changed"
-    //     }
-    // }
 }

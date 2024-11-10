@@ -1,6 +1,6 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common'
-import { BrandsService } from './brands.service'
 import { Prisma } from '@prisma/client'
+import { BrandsService } from './brands.service'
+import { Controller, Get, Post, Body, Param, Delete, Put } from '@nestjs/common'
 
 @Controller('api/brands')
 export class BrandsController {
@@ -21,7 +21,7 @@ export class BrandsController {
         return this.brandsService.getBrand(+id)
     }
 
-    @Patch(':id')
+    @Put(':id')
     updateBrand(@Param('id') id: number, @Body() body: Prisma.BrandUpdateInput) {
         return this.brandsService.updateBrand(+id, body)
     }

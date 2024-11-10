@@ -1,7 +1,7 @@
-import { BadRequestException, HttpException, Injectable } from '@nestjs/common'
-import { AddProductDto } from './dto/add-product.dto'
-import { UpdateProductDto } from './dto/update-product.dto'
 import { Prisma, Product } from '@prisma/client'
+import { AddProductDto } from './dto/add-product.dto'
+import { HttpException, Injectable } from '@nestjs/common'
+import { UpdateProductDto } from './dto/update-product.dto'
 import { DatabaseService } from 'src/database/database.service'
 
 @Injectable()
@@ -23,8 +23,8 @@ export class ProductsService {
                 },
                 brand: {
                     connect: {
-                        id: brandId
-                    }
+                        id: brandId,
+                    },
                 },
                 discount: {
                     isDiscount: false,
@@ -38,15 +38,29 @@ export class ProductsService {
     }
 
     async getProducts() {
-        const data: Product[] = await this.databaseService.product.findMany({
+        const products: Product[] = await this.databaseService.product.findMany({
             include: {
-                category: true,
-                brand: true
+                category: {
+                    select: {
+                        category: true
+                    }
+                },
+                brand: {
+                    select: {
+                        brand: true
+                    }
+                },
+            },
+            orderBy: {
+                createdAt: "desc"
             },
         })
+        const transformedData = products.map(({categoryId, brandId, ...obj}: Product) => {
+            return obj
+        })
         return {
-            message: "Success get all product",
-            data
+            message: "Success get all product data",
+            data: transformedData
         }
     }
 
@@ -56,8 +70,16 @@ export class ProductsService {
                 id
             },
             include: {
-                category: true,
-                brand: true
+                category: {
+                    select: {
+                        category: true
+                    }
+                },
+                brand: {
+                    select: {
+                        brand: true
+                    }
+                },
             }
         }) 
         const { categoryId, brandId, ...transformedData } = product
@@ -70,7 +92,7 @@ export class ProductsService {
         }
     }
 
-    async updateProduct(id: number, body: Prisma.ProductUpdateInput) {
+    async updateProduct(id: number, body: UpdateProductDto) {
         const product: Product = await this.databaseService.product.findFirst({
             where: {
                 id
@@ -78,6 +100,18 @@ export class ProductsService {
         }) 
         if(!product) {
             throw new HttpException("Product not found", 400)
+        }
+        
+        await this.databaseService.product.update({
+            where: {
+                id
+            },
+            data: {
+                ...body
+            }
+        })
+        return {
+            message: "Product has updated"
         }
     }
 

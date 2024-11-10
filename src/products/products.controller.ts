@@ -25,12 +25,12 @@ export class ProductsController {
     }
 
     @Put(':id')
-    updateProduct(@Param('id') id: number, @Body() body: Prisma.ProductUpdateInput) {
+    updateProduct(@Param('id') id: number, @Body() body: UpdateProductDto) {
         return this.productsService.updateProduct(+id, body);
     }
 
     @Delete(':id')
-    remove(@Param('id') id: number) {
+    removeProduct(@Param('id') id: number) {
         return this.productsService.removeProduct(+id)
     }
 }

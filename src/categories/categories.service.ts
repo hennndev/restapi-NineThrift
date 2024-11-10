@@ -1,6 +1,6 @@
 import { Prisma, Category } from '@prisma/client'
-import { DatabaseService } from 'src/database/database.service'
 import { HttpException, Injectable } from '@nestjs/common'
+import { DatabaseService } from 'src/database/database.service'
 
 @Injectable()
 export class CategoriesService {
@@ -30,7 +30,11 @@ export class CategoriesService {
     }
 
     async getCategories() {
-        const categories: Category[] = await this.databaseService.category.findMany({})
+        const categories: Category[] = await this.databaseService.category.findMany({
+            orderBy: {
+                createdAt: "desc"
+            }
+        })
         return {
             message: "Success get all category data",
             data: categories
@@ -47,7 +51,7 @@ export class CategoriesService {
             throw new HttpException("Category not found", 400)
         }
         return {
-            message: "Success get category",
+            message: "Success get category data",
             data: category
         }
     }
