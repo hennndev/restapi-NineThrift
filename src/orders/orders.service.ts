@@ -79,7 +79,7 @@ export class OrdersService {
                 },
             },
             orderBy: {
-                createdAT: "desc"
+                createdAt: "desc"
             }
         })
         return {
