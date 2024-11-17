@@ -1,5 +1,5 @@
 import { v4 as uuid} from 'uuid'
-import { Order, Prisma } from '@prisma/client'
+import { Order, Prisma, OrderStatus } from '@prisma/client'
 import { CreateOrderDto } from './dto/create-order.dto'
 import { HttpException, Injectable } from '@nestjs/common'
 import { DatabaseService } from 'src/database/database.service'
@@ -9,14 +9,18 @@ export class OrdersService {
     constructor(private readonly databaseService: DatabaseService) {}
     
     async createOrder(body: CreateOrderDto) {
-        const { totalOrders, userId, products } = body
-        if(!totalOrders|| !userId || !products || products.length < 1) {
+        const { totalOrders, totalPrice, userId, products } = body
+        if(!totalOrders || !userId || !totalPrice || !products || products.length < 1) {
             throw new HttpException("All field is required", 400)
+        }
+        if(products.length < 1) {
+            throw new HttpException("Minimum products 1 item", 400)
         }
         const order = await this.databaseService.order.create({
             data: {
                 id: uuid(),
                 totalOrders,
+                totalPrice,
                 user: {
                     connect: {
                         id: userId
@@ -150,14 +154,19 @@ export class OrdersService {
         if(!order) {
             throw new HttpException("Order not found", 400)
         }
-        await this.databaseService.order.update({
-            where: { id },
-            data: {
-                status: body.status
+        if(status === OrderStatus.PROCESSING || status === OrderStatus.COMPLETED || status === OrderStatus.CANCELLED) {
+            await this.databaseService.order.update({
+                where: { id },
+                data: {
+                    status: body.status
+                }
+            })
+            return {
+                message: "Order status has updated"
             }
-        })
-        return {
-            message: "Order status has updated"
+        
+        } else {
+            throw new HttpException("Status only can change PROCESSING/COMPLETED/CANCELLED", 400)
         }
     }
 

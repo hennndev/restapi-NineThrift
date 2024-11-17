@@ -62,6 +62,7 @@ model Brand {
 model Order {
     id          String      @id
     totalOrders Int
+    totalPrice  Int
     userId      Int         
     user        User        @relation("UserOrders", fields: [userId], references: [id], onUpdate: Cascade)
     products    ProductOrder[]    

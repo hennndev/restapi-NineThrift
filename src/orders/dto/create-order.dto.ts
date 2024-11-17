@@ -15,6 +15,9 @@ export class CreateOrderDto {
     totalOrders: number
 
     @IsInt()
+    totalPrice: number
+
+    @IsInt()
     userId: number
 
     @IsArray()
